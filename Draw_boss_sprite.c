@@ -39,7 +39,7 @@ void draw_boss_sprite() {
 	uint8_t current_column = 0;
 
 	/*
-	* drawing top half of sprite
+	* drawing the top half of the sprite
 	*/
 
 	for (current_row = 0; current_row <= 23; current_row++) {
@@ -51,7 +51,7 @@ void draw_boss_sprite() {
 	}
 
 	/*
-	 * drawing bottom half of sprite by going through array in reverse
+	 * drawing the bottom half of the sprite by going through the array in reverse
 	 */
 
 	for (current_row = 23; current_row > 0; current_row--) {
