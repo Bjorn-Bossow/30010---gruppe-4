@@ -7,10 +7,12 @@
 #include "game.h"
 #include "stdint.h"
 #include"stdio.h"
+#include <stdlib.h>
 #include "string.h"
 #include "30010_io.h"
 #include "charset.h"
 #include "ansi.h"
+#include <time.h>
 #define ESC 0x1B
 
 
@@ -88,7 +90,7 @@ void timerdisplay1() {
 
 }
 
-void timerdisplay2() {
+void timerdisplay2() { // fast
 	initFlag();
 
 	RCC->APB2ENR |= RCC_APB2Periph_TIM15; // Enable clock line to timer 15;
@@ -174,9 +176,10 @@ void player_movement(void) {
     movexy(PLAYER_X, PlayerPos);
     printf("\033[35m>\033[0m"); // Player model
 
-    int selector_value = Selector(); // Store the result of the selector
-
+    int selector_value = 1; // Store the result of the selector
+    lcd_init();
     while (1) {
+
         // Wait until 100ms has passed (timerFlag should be set by interrupt)
         if (globalFlag.status == 1) {
 
@@ -273,15 +276,20 @@ void player_movement(void) {
     }
 }
 
+
+
 int8_t Selector() {
     int ability = 1;
     int weapon = 1;
     int line = 3; // LCD LINE 3 AND 4 ARE USED TO DISPLAY WEAPONS AND ABILITIES
 
+
+
+
     if (readJoystick() == 3) { // WHEN LEFT IS PRESSED
         while (readJoystick() != 5) { // WHILE CENTER IS NOT PRESSED
             if (readJoystick() == 4 && line == 3) { // SWITCH BETWEEN WEAPONS
-                if (weapon < 3) {
+                if (weapon < 2) {
                     weapon += 1;
                 }
             }
@@ -301,7 +309,7 @@ int8_t Selector() {
                 }
             }
             if (readJoystick() == 4 && line == 4) { // SWITCH BETWEEN ABILITIES
-                if (ability < 3) {
+                if (ability < 2) {
                     ability += 1;
                 }
             }
@@ -310,6 +318,81 @@ int8_t Selector() {
                     ability -= 1;
                 }
             }
+
+            if (weapon == 1 && ability == 1) {
+                char result[200] = " Score Highscore Health  ";  // Ensure the destination array is large enough
+                char highscore_value[] =      "  123    ";
+                char score_value[] = "123    ";
+                char health_value[] = "<3<3<3<3<3";
+                char weapon_blaster[] = "[Blaster]        ";
+                char weapon_cannon[] = " Cannon ";
+                char ability_speed[] =      " [Speed]          ";
+                char ability_damage[] = " Damage ";
+                strcat(result, highscore_value);
+                strcat(result, score_value);
+                strcat(result, health_value);
+                strcat(result, weapon_blaster);
+                strcat(result, weapon_cannon);
+                strcat(result, ability_speed);
+                strcat(result, ability_damage);
+                lcd_write_string(result, 1);
+            }
+            else if (weapon == 1 && ability == 2) {
+                char result[200] = " Score Highscore Health  ";  // Ensure the destination array is large enough
+                char highscore_value[] =      "  123    ";
+                char score_value[] = "123    ";
+                char health_value[] = "<3<3<3<3<3";
+                char weapon_blaster[] = "[Blaster]        ";
+                char weapon_cannon[] = " Cannon ";
+                char ability_speed[] =      "  Speed           ";
+                char ability_damage[] = "[Damage]";
+                strcat(result, highscore_value);
+                strcat(result, score_value);
+                strcat(result, health_value);
+                strcat(result, weapon_blaster);
+                strcat(result, weapon_cannon);
+                strcat(result, ability_speed);
+                strcat(result, ability_damage);
+                lcd_write_string(result, 1);
+            }
+            else if (weapon == 2 && ability == 1) {
+                char result[200] = " Score Highscore Health  ";  // Ensure the destination array is large enough
+                char highscore_value[] =      "  123    ";
+                char score_value[] = "123    ";
+                char health_value[] = "<3<3<3<3<3";
+                char weapon_blaster[] = " Blaster         ";
+                char weapon_cannon[] = "[Cannon]";
+                char ability_speed[] =      " [Speed]          ";
+                char ability_damage[] = " Damage ";
+
+                strcat(result, highscore_value);
+                strcat(result, score_value);
+                strcat(result, health_value);
+                strcat(result, weapon_blaster);
+                strcat(result, weapon_cannon);
+                strcat(result, ability_speed);
+                strcat(result, ability_damage);
+                lcd_write_string(result, 1);
+            }
+            else {
+                char result[200] = " Score Highscore Health  ";  // Ensure the destination array is large enough
+                char highscore_value[] =      "  123    ";
+                char score_value[] = "123    ";
+                char health_value[] = "<3<3<3<3<3";
+                char weapon_blaster[] = " Blaster         ";
+                char weapon_cannon[] = "[Cannon]";
+                char ability_speed[] =      "  Speed           ";
+                char ability_damage[] = "[Damage]";
+        	    strcat(result, highscore_value);
+        	    strcat(result, score_value);
+        	    strcat(result, health_value);
+        	    strcat(result, weapon_blaster);
+        	    strcat(result, weapon_cannon);
+        	    strcat(result, ability_speed);
+        	    strcat(result, ability_damage);
+        	    lcd_write_string(result, 1);
+        }
+
         }
 
         // Return the value based on the weapon and ability selection
@@ -326,33 +409,32 @@ int8_t Selector() {
             return (4);
     }
     }
-    return 0; // Default return value if no valid selection
+    return (0); // Default return value if no valid selection
 }
+
 
 
 
 typedef struct {
-    int x; // Asteroid's horizontal position
-    int y; // Asteroid's vertical position
-    int active; // 1 if the Asteroid is Alive, 0 otherwise
-} AsteroidCheck;
+    int x;          // x location
+    int y;          // y location
+    int health;     // health of the asteroid
+    int active;     // 0 for inactive, 1 for active
+} Asteroid;
 
-void Asteroid() {
-
-	movexy(14,10);
-	printf("....");
-	movexy(13,11);
-	printf("........");
-	movexy(12,12);
-	printf("..........");
-	movexy(13,13);
-	printf("........");
-	movexy(14,14);
-	printf("....");
-
-
-
+void lcd_write_string(char string[], int location) {
+	uint8_t buffer[512];
+	memset(buffer, 0x00, 512);
+		for (int i = 0; string[i] != '\0'; i++){
+		buffer[location + i*5 + 0] = (character_data[(int)string[i]-32][0]);
+		buffer[location + i*5 + 1] = (character_data[(int)string[i]-32][1]);
+		buffer[location + i*5 + 2] = (character_data[(int)string[i]-32][2]);
+		buffer[location + i*5 + 3] = (character_data[(int)string[i]-32][3]);
+		buffer[location + i*5 + 4] = (character_data[(int)string[i]-32][4]);
+	}
+	lcd_push_buffer(buffer);
 }
+
 
 
 
