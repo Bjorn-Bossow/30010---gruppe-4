@@ -5,7 +5,7 @@
 #include "string.h"
 #include "stdio.h"
 #include "charset.h"
-#include "Rumspil.h"
+#include "menu.h"
 
 void menu() {
 	float x1 = 1, x2 = 177, y1 = 1, y2 = 61;
