@@ -1,4 +1,12 @@
-#define ESC 0x1B
+/*
+ * menu.c
+ *
+ *  Created on: 19. jan. 2025
+ *      Author: frikk
+ */
+#include "lcd.h"
+#include "game.h"
+#include "string.h"
 #include "stm32f30x_conf.h" // STM32 config
 #include "30010_io.h" // Input/output library for this course
 #include "ansi.h"
@@ -7,11 +15,27 @@
 #include "charset.h"
 #include "menu.h"
 
+#define ESC 0x1B
+
+
+void gotoxy(uint8_t x, uint8_t y) {
+    printf("%c[%d;%dH", ESC, y, x );
+}
+
+#define ESC 0x1B
+
+
 void menu() {
-	float x1 = 1, x2 = 177, y1 = 1, y2 = 61;
+	uint8_t corner1 = 218;
+	uint8_t corner2 = 191;
+	uint8_t corner3 = 217;
+	uint8_t corner4 = 192;
+	uint8_t horisontal = 196;
+	uint8_t vertical = 179;
+
+	float x1 = 1, x2 = 189, y1 = 1, y2 = 61;
 	int bredde = 10;
 	int hojde = 5;
-	resetbgcolor();
 		clrscr();
 		gotoxy(x1,y1);
 
@@ -294,10 +318,15 @@ void menu() {
 }
 
 void difficulty_select() {
-	float x1 = 1, x2 = 177, y1 = 1, y2 = 61;
+	uint8_t corner1 = 218;
+	uint8_t corner2 = 191;
+	uint8_t corner3 = 217;
+	uint8_t corner4 = 192;
+	uint8_t horisontal = 196;
+	uint8_t vertical = 179;
+	float x1 = 1, x2 = 189, y1 = 1, y2 = 61;
 	int bredde = 10;
 	int hojde = 5;
-	resetbgcolor();
 		clrscr();
 		gotoxy(x1,y1);
 
@@ -578,15 +607,20 @@ void difficulty_select() {
 		    if(StatePos == 1 && center >= 1) {
 		    	clrscr();
 		    	border();
-		    	player_movement();
+		    	player();
 		    }
 		}
 }
 
 void help_screen() {
-	float x1 = 1, x2 = 177, y1 = 1, y2 = 61;
+	uint8_t corner1 = 218;
+	uint8_t corner2 = 191;
+	uint8_t corner3 = 217;
+	uint8_t corner4 = 192;
+	uint8_t horisontal = 196;
+	uint8_t vertical = 179;
+	float x1 = 1, x2 = 189, y1 = 1, y2 = 61;
 
-	resetbgcolor();
 		clrscr();
 		gotoxy(x1,y1);
 
@@ -621,8 +655,26 @@ void help_screen() {
 			printf("%c", horisontal);
 		}
 
-		gotoxy(x2/2, y2/2);
-		printf("Info");
+		gotoxy((x2/2)-30, (y2/2)-15);
+		printf("MENU SCREEN CONTROLS: Use the joystick to move left and right");
+		gotoxy((x2/2)-30, (y2/2)-14);
+		printf("through the menu screen options. Select by pressing the button.");
+		gotoxy((x2/2)-30, (y2/2)-13);
+		printf("Go back by pressing down on the joystick.");
+		gotoxy((x2/2)-30, (y2/2)-12);
+		gotoxy((x2/2)-30, (y2/2)-11);
+		printf("GAME CONTROLS: The spaceship is moved up and down using the joystick.");
+		gotoxy((x2/2)-30, (y2/2)-10);
+		printf("Shoot by pressing the button on the joystick. Access weapon and ability");
+		gotoxy((x2/2)-30, (y2/2)-9);
+		printf("selection, by pressing left. While in selection use right and left to");
+		gotoxy((x2/2)-30, (y2/2)-8);
+		printf("switch and up and down to move between lines. When you've selected simply");
+		gotoxy((x2/2)-30, (y2/2)-7);
+		printf("press the button to return to the game.");
+		gotoxy((x2/2)-30, (y2/2)-6);
+		gotoxy((x2/2)-30, (y2/2)-5);
+
 		while(1) {
 	    GPIOB->MODER &= ~(0x00000003 << (0 * 2)); // Clear mode register
 	    GPIOB->MODER |=  (0x00000000 << (0 * 2)); // Set mode register (0x00 – Input, 0x01 - Output, 0x02 - Alternate Function, 0x03 - Analog in/out)
@@ -636,4 +688,7 @@ void help_screen() {
 		}
 		}
 }
+
+
+
 

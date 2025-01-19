@@ -5,6 +5,7 @@
  *      Author: frikk
  */
 #include "game.h"
+#include "lcd.h"
 #include "stdint.h"
 #include"stdio.h"
 #include <stdlib.h>
@@ -98,11 +99,11 @@ void timerdisplay2() { // fast
 
 
 	TIM15->CR1 &= ~(0x0001 << 11); // Configure timer 15
-	TIM15->CR1 |= (0x0003 << 8); // Configure timer 15
-	TIM15->CR1 &= ~(0x0001 << 7); // Configure timer 15
-	TIM15->CR1 &= ~(0x0001 << 3); // Configure timer 15
-	TIM15->CR1 &= ~(0x0001 << 2); // Configure timer 15
-	TIM15->CR1 &= ~(0x0001 << 1); // Configure timer 15
+	TIM15->CR1 |= (0x0003 << 8);
+	TIM15->CR1 &= ~(0x0001 << 7);
+	TIM15->CR1 &= ~(0x0001 << 3);
+	TIM15->CR1 &= ~(0x0001 << 2);
+	TIM15->CR1 &= ~(0x0001 << 1);
 	TIM15->CR1 |= (0x0001 << 0);
 
 
@@ -134,46 +135,49 @@ void initFlag(void) {
 }
 
 
-
-typedef struct {
-    int x; // Bullet's horizontal position
-    int y; // Bullet's vertical position
-    int active; // 1 if the bullet is active, 0 otherwise
-} PlayerBullet;
-
-typedef struct {
-    int x; // Bullet's horizontal position
-    int y; // Bullet's vertical position
-    int active; // 1 if the bullet is active, 0 otherwise
-} PlayerBullet2;
-
-
-
-
-void player_movement(void) {
-    int PlayerPos = 25; // Player y location
-    const int PLAYER_X = 3;
-    const int MAX_BULLETS = 10;
-    const int MAX_BULLETS2 = 3;
-    PlayerBullet bullets[MAX_BULLETS]; // Array of bullets
-    PlayerBullet2 bullets2[MAX_BULLETS2]; // Array of bullets
-
-    // Initialize bullets array
+void initialize_bullets(PlayerBullet bullets[], int MAX_BULLETS) {
     for (int i = 0; i < MAX_BULLETS; i++) {
         bullets[i].x = 0;
         bullets[i].y = 0;
         bullets[i].active = 0;
     }
+}
 
-    // Initialize bullets array 2
+void initialize_bullets2(PlayerBullet2 bullets2[], int MAX_BULLETS2) {
     for (int i = 0; i < MAX_BULLETS2; i++) {
         bullets2[i].x = 0;
         bullets2[i].y = 0;
         bullets2[i].active = 0;
     }
+}
+
+
+void player(void) {
+	uint8_t PlayerPos = 25; // Player y location
+	int times = 0;
+    int MAX_BULLETS = 10;
+    int MAX_BULLETS2 = 3;
+    int MAX_ASTEROIDS = 10;
+    int ASTEROID_HEALTH = 10;
+    PlayerBullet bullets[MAX_BULLETS]; // Array of bullets for weapon 1
+    PlayerBullet2 bullets2[MAX_BULLETS2]; // Array of bullets for weapon 2
+    asteroid asteroids[MAX_ASTEROIDS]; // Array for asteroids
+
+    srand(time(NULL));
+
+
+    // Initialize bullets array
+    initialize_bullets(bullets, MAX_BULLETS);
+
+    // Initialize bullets array 2
+    initialize_bullets2(bullets2, MAX_BULLETS2);
+
+    // Initialize asteroid array
+    initialize_asteroids(asteroids, MAX_ASTEROIDS, ASTEROID_HEALTH);
+
 
     // Draw the player initially
-    movexy(PLAYER_X, PlayerPos);
+    movexy(3, PlayerPos);
     printf("\033[35m>\033[0m"); // Player model
 
     int selector_value = 1; // Store the result of the selector
@@ -182,236 +186,253 @@ void player_movement(void) {
 
         // Wait until 100ms has passed (timerFlag should be set by interrupt)
         if (globalFlag.status == 1) {
-
+        	times++;
             // Check joystick for selecting the weapon and ability
             if (readJoystick() == 3) {
                 selector_value = Selector(); // Store the result of the selector
             }
-
-            // Check joystick input for player movement
-            if ((readJoystick() == 1) && (PlayerPos != 2)) { // MOVE UP
-                movexy(PLAYER_X, PlayerPos);
-                printf(" "); // Clear previous position
-                PlayerPos -= 1;
-                movexy(PLAYER_X, PlayerPos);
-                printf("\033[35m>\033[0m"); // Draw new position
-            }
-            if ((readJoystick() == 2) && (PlayerPos != 49)) { // MOVE DOWN
-                movexy(PLAYER_X, PlayerPos);
-                printf(" "); // Clear previous position
-                PlayerPos += 1;
-                movexy(PLAYER_X, PlayerPos);
-                printf("\033[35m>\033[0m"); // Draw new position
-            }
+            PlayerPos = player_move_update(PlayerPos, selector_value);
 
             // Check joystick input for shooting
-            if (readJoystick() == 5) { // Shoot
-                if (selector_value == 1 || selector_value == 3) {
-                    // Use the first set of bullets (based on selector result)
-                    for (int i = 0; i < MAX_BULLETS; i++) {
-                        if (!bullets[i].active) { // Use the first inactive bullet slot
-                            bullets[i].x = PLAYER_X + 1; // Start just to the right of the player
-                            bullets[i].y = PlayerPos;    // Match player's vertical position
-                            bullets[i].active = 1;       // Mark the bullet as active
-                            break;
-                        }
-                    }
-                }
-                else {
-                    // Use the second set of bullets (based on selector result)
-                    for (int i = 0; i < MAX_BULLETS2; i++) {
-                        if (!bullets2[i].active) { // Use the first inactive bullet slot
-                            bullets2[i].x = PLAYER_X + 1; // Start just to the right of the player
-                            bullets2[i].y = PlayerPos;    // Match player's vertical position
-                            bullets2[i].active = 1;       // Mark the bullet as active
-                            break;
-                        }
-                    }
-                }
-            }
+            shoot(selector_value, bullets, bullets2, MAX_BULLETS, MAX_BULLETS2, PlayerPos);
 
             // Update bullets' positions
-            for (int i = 0; i < MAX_BULLETS; i++) {
-                if (bullets[i].active) {
-                    // Erase the bullet at the current position
-                    movexy(bullets[i].x, bullets[i].y);
-                    printf(" ");
+            bullet_update(bullets, MAX_BULLETS);
 
-                    // Move the bullet to the right
-                    bullets[i].x++;
+            bullet_update2(bullets2, MAX_BULLETS2);
 
-                    // Check if the bullet is out of bounds
-                    if (bullets[i].x >= 187) {
-                        bullets[i].active = 0; // Deactivate the bullet
-                    } else {
-                        // Draw the bullet at the new position
-                        movexy(bullets[i].x, bullets[i].y);
-                        printf("\033[35m-\033[0m");
-                    }
-                }
-            }
+            asteroid_spawn(asteroids, MAX_ASTEROIDS, ASTEROID_HEALTH, times);
 
-            for (int i = 0; i < MAX_BULLETS2; i++) {
-                if (bullets2[i].active) {
-                    // Erase the bullet at the current position
-                    movexy(bullets2[i].x, bullets2[i].y);
-                    printf(" ");
+            asteroid_update(asteroids, MAX_ASTEROIDS, ASTEROID_HEALTH, times);
 
-                    // Move the bullet to the right
-                    bullets2[i].x++;
+            asteroid_collision(asteroids, bullets, MAX_ASTEROIDS, MAX_BULLETS);
 
-                    // Check if the bullet is out of bounds
-                    if (bullets2[i].x >= 187) {
-                        bullets2[i].active = 0; // Deactivate the bullet
-                    } else {
-                        // Draw the bullet at the new position
-                        movexy(bullets2[i].x, bullets2[i].y);
-                        printf("\033[35mo\033[0m");
-                    }
-                }
-            }
+            asteroid_collision2(asteroids, bullets2, MAX_ASTEROIDS, MAX_BULLETS2);
+
+
 
             globalFlag.status = 0;
         }
     }
 }
 
-
-
-int8_t Selector() {
-    int ability = 1;
-    int weapon = 1;
-    int line = 3; // LCD LINE 3 AND 4 ARE USED TO DISPLAY WEAPONS AND ABILITIES
-
-
-
-
-    if (readJoystick() == 3) { // WHEN LEFT IS PRESSED
-        while (readJoystick() != 5) { // WHILE CENTER IS NOT PRESSED
-            if (readJoystick() == 4 && line == 3) { // SWITCH BETWEEN WEAPONS
-                if (weapon < 2) {
-                    weapon += 1;
+void shoot(int selector_value, PlayerBullet bullets[], PlayerBullet2 bullets2[], int MAX_BULLETS,int MAX_BULLETS2, uint8_t PlayerPos) {
+    // Check joystick input for shooting
+    if (readJoystick() == 5) { // Shoot
+        if (selector_value == 1 || selector_value == 3) {
+            // Use the first set of bullets (based on selector result)
+            for (int i = 0; i < MAX_BULLETS; i++) {
+                if (!bullets[i].active) { // Use the first inactive bullet slot
+                    bullets[i].x = 3 + 1; // Start just to the right of the player
+                    bullets[i].y = PlayerPos;    // Match player's vertical position
+                    bullets[i].active = 1;       // Mark the bullet as active
+                    break;
                 }
             }
-            if (readJoystick() == 3 && line == 3) { // SWITCH BETWEEN WEAPONS
-                if (weapon > 1) {
-                    weapon -= 1;
-                }
-            }
-            if (readJoystick() == 2) { // SWITCH BETWEEN LINES
-                if (line < 4) {
-                    line += 1;
-                }
-            }
-            if (readJoystick() == 1) { // SWITCH BETWEEN LINES
-                if (line > 3) {
-                    line -= 1;
-                }
-            }
-            if (readJoystick() == 4 && line == 4) { // SWITCH BETWEEN ABILITIES
-                if (ability < 2) {
-                    ability += 1;
-                }
-            }
-            if (readJoystick() == 3 && line == 4) { // SWITCH BETWEEN ABILITIES
-                if (ability > 1) {
-                    ability -= 1;
-                }
-            }
-
-            if (weapon == 1 && ability == 1) {
-                char result[200] = " Score Highscore Health  ";  // Ensure the destination array is large enough
-                char highscore_value[] =      "  123    ";
-                char score_value[] = "123    ";
-                char health_value[] = "<3<3<3<3<3";
-                char weapon_blaster[] = "[Blaster]        ";
-                char weapon_cannon[] = " Cannon ";
-                char ability_speed[] =      " [Speed]          ";
-                char ability_damage[] = " Damage ";
-                strcat(result, highscore_value);
-                strcat(result, score_value);
-                strcat(result, health_value);
-                strcat(result, weapon_blaster);
-                strcat(result, weapon_cannon);
-                strcat(result, ability_speed);
-                strcat(result, ability_damage);
-                lcd_write_string(result, 1);
-            }
-            else if (weapon == 1 && ability == 2) {
-                char result[200] = " Score Highscore Health  ";  // Ensure the destination array is large enough
-                char highscore_value[] =      "  123    ";
-                char score_value[] = "123    ";
-                char health_value[] = "<3<3<3<3<3";
-                char weapon_blaster[] = "[Blaster]        ";
-                char weapon_cannon[] = " Cannon ";
-                char ability_speed[] =      "  Speed           ";
-                char ability_damage[] = "[Damage]";
-                strcat(result, highscore_value);
-                strcat(result, score_value);
-                strcat(result, health_value);
-                strcat(result, weapon_blaster);
-                strcat(result, weapon_cannon);
-                strcat(result, ability_speed);
-                strcat(result, ability_damage);
-                lcd_write_string(result, 1);
-            }
-            else if (weapon == 2 && ability == 1) {
-                char result[200] = " Score Highscore Health  ";  // Ensure the destination array is large enough
-                char highscore_value[] =      "  123    ";
-                char score_value[] = "123    ";
-                char health_value[] = "<3<3<3<3<3";
-                char weapon_blaster[] = " Blaster         ";
-                char weapon_cannon[] = "[Cannon]";
-                char ability_speed[] =      " [Speed]          ";
-                char ability_damage[] = " Damage ";
-
-                strcat(result, highscore_value);
-                strcat(result, score_value);
-                strcat(result, health_value);
-                strcat(result, weapon_blaster);
-                strcat(result, weapon_cannon);
-                strcat(result, ability_speed);
-                strcat(result, ability_damage);
-                lcd_write_string(result, 1);
-            }
-            else {
-                char result[200] = " Score Highscore Health  ";  // Ensure the destination array is large enough
-                char highscore_value[] =      "  123    ";
-                char score_value[] = "123    ";
-                char health_value[] = "<3<3<3<3<3";
-                char weapon_blaster[] = " Blaster         ";
-                char weapon_cannon[] = "[Cannon]";
-                char ability_speed[] =      "  Speed           ";
-                char ability_damage[] = "[Damage]";
-        	    strcat(result, highscore_value);
-        	    strcat(result, score_value);
-        	    strcat(result, health_value);
-        	    strcat(result, weapon_blaster);
-        	    strcat(result, weapon_cannon);
-        	    strcat(result, ability_speed);
-        	    strcat(result, ability_damage);
-        	    lcd_write_string(result, 1);
         }
-
+        else {
+            // Use the second set of bullets (based on selector result)
+            for (int i = 0; i < MAX_BULLETS2; i++) {
+                if (!bullets2[i].active) { // Use the first inactive bullet slot
+                    bullets2[i].x = 3 + 1; // Start just to the right of the player
+                    bullets2[i].y = PlayerPos;    // Match player's vertical position
+                    bullets2[i].active = 1;       // Mark the bullet as active
+                    break;
+                }
+            }
         }
-
-        // Return the value based on the weapon and ability selection
-        if (weapon == 1 && ability == 1) {
-            return (1);
-        }
-        if (weapon == 2 && ability == 1) {
-            return (2);
-        }
-        if (weapon == 1 && ability == 2) {
-            return (3);
-        }
-        if (weapon == 2 && ability == 2) {
-            return (4);
     }
-    }
-    return (0); // Default return value if no valid selection
 }
 
+
+
+void bullet_update(PlayerBullet bullets[], int MAX_BULLETS) {
+    // Update bullets' positions
+    for (int i = 0; i < MAX_BULLETS; i++) {
+        if (bullets[i].active) {
+            // Erase the bullet at the current position
+            movexy(bullets[i].x, bullets[i].y);
+            printf(" ");
+
+            // Move the bullet to the right
+            bullets[i].x++;
+
+            // Check if the bullet is out of bounds
+            if (bullets[i].x >= 187) {
+                bullets[i].active = 0; // Deactivate the bullet
+            } else {
+                // Draw the bullet at the new position
+                movexy(bullets[i].x, bullets[i].y);
+                printf("\033[35m-\033[0m");
+            }
+        }
+    }
+}
+
+void bullet_update2(PlayerBullet2 bullets2[], int MAX_BULLETS2) {
+    for (int i = 0; i < MAX_BULLETS2; i++) {
+        if (bullets2[i].active) {
+            // Erase the bullet at the current position
+            movexy(bullets2[i].x, bullets2[i].y);
+            printf(" ");
+
+            // Move the bullet to the right
+            bullets2[i].x++;
+
+            // Check if the bullet is out of bounds
+            if (bullets2[i].x >= 187) {
+                bullets2[i].active = 0; // Deactivate the bullet
+            } else {
+                // Draw the bullet at the new position
+                movexy(bullets2[i].x, bullets2[i].y);
+                printf("\033[35mo\033[0m");
+            }
+        }
+    }
+}
+
+
+uint8_t player_move_update(uint8_t PlayerPos, int selector_value) {
+    // Check joystick input for player movement
+    if ((readJoystick() == 1) && (PlayerPos != 2)) { // MOVE UP
+    	if ((selector_value == 1 || selector_value == 2) && PlayerPos != 3) {
+    		movexy(3, PlayerPos);
+    		printf(" "); // Clear previous position
+    		PlayerPos -= 2;
+    		movexy(3, PlayerPos);
+    		printf("\033[35m>\033[0m"); // Draw new position
+    	}
+    	else {
+            movexy(3, PlayerPos);
+            printf(" "); // Clear previous position
+            PlayerPos -= 1;
+            movexy(3, PlayerPos);
+            printf("\033[35m>\033[0m"); // Draw new position
+        	}
+    	}
+
+    if ((readJoystick() == 2) && (PlayerPos != 49)) { // MOVE DOWN
+    	if ((selector_value == 1 || selector_value == 2)  && PlayerPos != 48) {
+    		movexy(3, PlayerPos);
+    		printf(" "); // Clear previous position
+    		PlayerPos += 2;
+        	movexy(3, PlayerPos);
+        	printf("\033[35m>\033[0m"); // Draw new position
+    	}
+    	else {
+    		movexy(3, PlayerPos);
+    		printf(" "); // Clear previous position
+    		PlayerPos += 1;
+        	movexy(3, PlayerPos);
+        	printf("\033[35m>\033[0m"); // Draw new position
+    }
+    }
+    return PlayerPos;
+}
+
+void initialize_asteroids(asteroid asteroids[], int MAX_ASTEROIDS, int ASTEROID_HEALTH) {
+	 for (int i = 0; i < MAX_ASTEROIDS; i++) {
+		 asteroids[i].x = 0;
+		 asteroids[i].y = 0;
+		 asteroids[i].j = ASTEROID_HEALTH;
+		 asteroids[i].active = 0;
+	 }
+}
+
+void asteroid_spawn(asteroid asteroids[], int MAX_ASTEROIDS, int ASTEROID_HEALTH,  int time) {
+	if (time % 50 == 0) {
+        for (int i = 0; i < MAX_ASTEROIDS; i++) {
+            if (!asteroids[i].active) { // Use the first inactive bullet slot
+            	asteroids[i].x = 170; // Start just to the right of the player
+            	asteroids[i].y = 8 + rand() % (44 - 8 + 1);    // Match player's vertical position
+            	asteroids[i].j = ASTEROID_HEALTH;
+            	asteroids[i].active = 1;       // Mark the bullet as active
+                break;
+            }
+        }
+    }
+}
+
+void asteroid_update(asteroid asteroids[], int MAX_ASTEROIDS, int ASTEROID_HEALTH, int times) {
+	if (times % 20 == 0) {
+		for (int i = 0; i < MAX_ASTEROIDS; i++) {
+			if (asteroids[i].active) {
+				// Erase the bullet at the current position
+				movexy(asteroids[i].x, asteroids[i].y);
+				printf(" ");
+
+				// Move the asteroid to the left
+				asteroids[i].x--;
+
+				// Check if the asteroid is out of bounds
+				if (asteroids[i].x <= 4) {
+					asteroids[i].active = 0; // Deactivate the asteroid
+				}
+				else {
+					// Draw the a at the new position
+					movexy(asteroids[i].x, asteroids[i].y);
+					printf("O");
+				}
+			}
+		}
+	}
+}
+
+void asteroid_collision(asteroid asteroids[], PlayerBullet bullets[], int MAX_ASTEROIDS, int MAX_BULLETS) {
+	for (int i = 0; i < MAX_ASTEROIDS; i++) {
+		for (int k = 0; k < MAX_BULLETS; k++) {
+
+			if ((asteroids[i].x == bullets[k].x + 1) && (asteroids[i].y == bullets[k].y)) {
+
+
+				bullets[k].active = 0;
+				asteroids[i].j--;
+
+			}
+
+			if (asteroids[i].j == 0) {
+				asteroids[i].active = 0;
+				movexy(asteroids[i].x,asteroids[i].y);
+				printf(" ");
+				movexy(asteroids[i].x-1,asteroids[i].y);
+				printf(" ");
+				movexy(asteroids[i].x-2,asteroids[i].y);
+				printf(" ");
+				movexy(asteroids[i].x-3,asteroids[i].y);
+				printf(" ");
+				movexy(asteroids[i].x-4,asteroids[i].y);
+				printf(" ");
+			}
+		}
+	}
+}
+
+void asteroid_collision2(asteroid asteroids[], PlayerBullet2 bullets2[], int MAX_ASTEROIDS, int MAX_BULLETS2) {
+	for (int i = 0; i < MAX_ASTEROIDS; i++) {
+		for (int k = 0; k < MAX_BULLETS2; k++) {
+			if ((asteroids[i].x == bullets2[k].x + 2) && (asteroids[i].y == bullets2[k].y)) {
+
+				bullets2[k].active = 0;
+			}
+			if ((asteroids[i].x == bullets2[k].x + 1) && (asteroids[i].y == bullets2[k].y)) {
+
+
+				bullets2[k].active = 0;
+
+				asteroids[i].j--;
+			}
+			if ((asteroids[i].x == bullets2[k].x) && (asteroids[i].y == bullets2[k].y)) {
+
+				bullets2[k].active = 0;
+			}
+			if (asteroids[i].j == 0) {
+				asteroids[i].active = 0;
+				movexy(asteroids[i].x,asteroids[i].y);
+				printf(" ");
+			}
+		}
+	}
+}
 
 
 
