@@ -230,7 +230,7 @@ void settings_boss_key(int x, int y, int width, int height, int fg, int bg) {
     display_text_in_window(x + 1, y + 3, "Enter values between 1 and 188 for the following:");
     display_text_in_window(x + 1, y + 4, "Follow the instructions bellow, and make sure x + width <= 189 and y + height <= 51. When a number has been choosen, press the Enter key to lock in the value.");
 
-
+    uint8_t break_true = 0;
 
     // Input buffer for user input
     char input_buffer[5];
@@ -247,6 +247,8 @@ void settings_boss_key(int x, int y, int width, int height, int fg, int bg) {
 
     while (1) {
         int input = uart_get_char();  // Capture keyboard input
+	if(input == 27) {break_true = 1;} 
+        if(break_true) {break;} 
 
         if (input == 13) { // Enter key
             input_buffer[i] = '\0'; // Null-terminate the string
@@ -278,6 +280,8 @@ void settings_boss_key(int x, int y, int width, int height, int fg, int bg) {
 
     while (1) {
         int input = uart_get_char();
+	if(input == 27) {break_true = 1;} 
+        if(break_true) {break;} 
 
         if (input == 13) {
             input_buffer[i] = '\0';
@@ -309,6 +313,8 @@ void settings_boss_key(int x, int y, int width, int height, int fg, int bg) {
 
     while (1) {
         int input = uart_get_char();
+	if(input == 27) {break_true = 1;} 
+        if(break_true) {break;} 
 
         if (input == 13) {
             input_buffer[i] = '\0';
@@ -340,6 +346,8 @@ void settings_boss_key(int x, int y, int width, int height, int fg, int bg) {
 
     while (1) {
         int input = uart_get_char();
+	if(input == 27) {break_true = 1;} 
+        if(break_true) {break;} 
 
         if (input == 13) {
             input_buffer[i] = '\0';
@@ -371,6 +379,8 @@ void settings_boss_key(int x, int y, int width, int height, int fg, int bg) {
 
     while (1) {
         int input = uart_get_char();
+	if(input == 27) {break_true = 1;} 
+        if(break_true) {break;} 
 
         if (input == 13) {
             input_buffer[i] = '\0';
@@ -402,6 +412,8 @@ void settings_boss_key(int x, int y, int width, int height, int fg, int bg) {
 
     while (1) {
         int input = uart_get_char();
+	if(input == 27) {break_true = 1;} 
+        if(break_true) {break;} 
 
         if (input == 13) {
             input_buffer[i] = '\0';
@@ -433,7 +445,9 @@ void settings_boss_key(int x, int y, int width, int height, int fg, int bg) {
         i = 0;
 
         while (1) {
-            int input = uart_get_char();
+        int input = uart_get_char();
+	if(input == 27) {break_true = 1;} 
+        if(break_true) {break;} 
 
             if (input == 13) {
                 input_buffer[i] = '\0';
@@ -465,6 +479,8 @@ void settings_boss_key(int x, int y, int width, int height, int fg, int bg) {
 
             while (1) {
                 int input = uart_get_char();
+		if(input == 27) {break_true = 1;} 
+      		if(break_true) {break;} 
 
                 if (input == 13) {
                     input_buffer[i] = '\0';
@@ -496,6 +512,8 @@ void settings_boss_key(int x, int y, int width, int height, int fg, int bg) {
 
                        while (1) {
                            int input = uart_get_char();
+			   if(input == 27) {break_true = 1;} 
+      	 		   if(break_true) {break;} 
 
                            if (input == 13) {
                                input_buffer[i] = '\0';
@@ -527,6 +545,8 @@ void settings_boss_key(int x, int y, int width, int height, int fg, int bg) {
 
                        while (1) {
                            int input = uart_get_char();
+			   if(input == 27) {break_true = 1;} 
+      			   if(break_true) {break;} 
 
                            if (input == 13) {
                                input_buffer[i] = '\0';
@@ -558,6 +578,8 @@ void settings_boss_key(int x, int y, int width, int height, int fg, int bg) {
 
                        while (1) {
                            int input = uart_get_char();
+			   if(input == 27) {break_true = 1;} 
+       			   if(break_true) {break;} 
 
                            if (input == 13) {
                                input_buffer[i] = '\0';
@@ -589,6 +611,8 @@ void settings_boss_key(int x, int y, int width, int height, int fg, int bg) {
 
                        while (1) {
                            int input = uart_get_char();
+			   if(input == 27) {break_true = 1;} 
+       			   if(break_true) {break;} 
 
                            if (input == 13) {
                                input_buffer[i] = '\0';
