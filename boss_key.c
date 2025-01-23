@@ -4,30 +4,6 @@
 #include "stm32f30x_conf.h" // STM32 config
 #include "30010_io.h"
 
-//Choose foreground and background color
-void color(uint8_t foreground, uint8_t background) {
-    uint8_t type = 22; // normal text
-    if (foreground > 7) {
-        type = 1; // bold text
-        foreground -= 8;
-    }
-    printf("%c[%d;%d;%dm", ESC, type, foreground + 30, background + 40);
-}
-
-//reset background color
-void resetbgcolor() {
-    printf("%c[m", ESC);
-}
-
-//Clear screen
-void clrscr() {
-    printf("%c[2J%c[H", ESC, ESC);
-}
-
-//Cursor go to: x, y in terminal
-void gotoxy(int x, int y) {
-    printf("%c[%d;%dH", ESC, y, x);
-}
 
 //Draw a simple window
 void draw_window(int x, int y, int width, int height) {
