@@ -620,14 +620,19 @@ void settings_boss_key(int x, int y, int width, int height, int fg, int bg) {
 
 int boss_key() {
     int input = 0;
+    input = uart_get_char(); // Register input from keyboard
+    uint8_t key_activate = 0;
+    if (input == 32) {
+    	key_activate = 1;
     while (1) {
         input = uart_get_char(); // Register input from keyboard
 
-        if (input == 32) { // Space key activate boss key
+        if ((input == 32)|key_activate) { // Space key activate boss key
             clrscr();
             spreadsheet(spreadsheet_x, spreadsheet_y, spreadsheet_width, spreadsheet_height, spreadsheet_fg, spreadsheet_bg);
             how_to_work_window(work_window_x, work_window_y, work_window_width, work_window_height, work_window_fg, work_window_bg);
             resetbgcolor();
+            key_activate = 0;
         }
         if (input == 99) { // 'c' key clear screen
             clrscr();
@@ -636,5 +641,10 @@ int boss_key() {
             clrscr();
             settings_boss_key(1, 1, 188, 50, 0, 7);
         }
+        if (input == 27) {
+        	clrscr();
+        	break;
+        }
     }
+}
 }
