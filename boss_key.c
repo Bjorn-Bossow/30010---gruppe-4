@@ -228,7 +228,7 @@ void settings_boss_key(int x, int y, int width, int height, int fg, int bg) {
     draw_window(x, y, width, height);
     display_text_in_window(x + 1, y + 1, "Settings: Customize Boss Key");
     display_text_in_window(x + 1, y + 3, "Enter values between 1 and 188 for the following:");
-    display_text_in_window(x + 1, y + 4, "Follow the instructions bellow, and make sure x + width >= 189 and y + height >= 51");
+    display_text_in_window(x + 1, y + 4, "Follow the instructions bellow, and make sure x + width <= 189 and y + height <= 51. When a number has been choosen, press the Enter key to lock in the value.");
 
 
 
