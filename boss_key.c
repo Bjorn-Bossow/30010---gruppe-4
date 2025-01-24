@@ -230,7 +230,7 @@ void settings_boss_key(int x, int y, int width, int height, int fg, int bg) {
     display_text_in_window(x + 1, y + 3, "Enter values between 1 and 188 for the following:");
     display_text_in_window(x + 1, y + 4, "Follow the instructions bellow, and make sure x + width <= 189 and y + height <= 51. When a number has been choosen, press the Enter key to lock in the value.");
 
-    uint8_t break_true = 0;
+
 
     // Input buffer for user input
     char input_buffer[5];
@@ -247,8 +247,6 @@ void settings_boss_key(int x, int y, int width, int height, int fg, int bg) {
 
     while (1) {
         int input = uart_get_char();  // Capture keyboard input
-	if(input == 27) {break_true = 1;} 
-        if(break_true) {break;} 
 
         if (input == 13) { // Enter key
             input_buffer[i] = '\0'; // Null-terminate the string
@@ -280,8 +278,6 @@ void settings_boss_key(int x, int y, int width, int height, int fg, int bg) {
 
     while (1) {
         int input = uart_get_char();
-	if(input == 27) {break_true = 1;} 
-        if(break_true) {break;} 
 
         if (input == 13) {
             input_buffer[i] = '\0';
@@ -305,26 +301,29 @@ void settings_boss_key(int x, int y, int width, int height, int fg, int bg) {
     }
 
     // Setting for spreadsheet_width
+    int max_spreadsheet_width_input = 189 - spreadsheet_x;
+    char max_spreadsheet_width_input_str[10]; // A buffer to store the string representation of the number
+    sprintf(max_spreadsheet_width_input_str, "%d", max_spreadsheet_width_input); // Convert the integer to a string
+    int string_lenth_spreadsheet_width = strlen("Enters new value (20-): ") + strlen(max_spreadsheet_width_input_str);
+
     gotoxy(x + 1, y + 14);
     printf("Spreadsheet width: %d", spreadsheet_width);
     gotoxy(x + 1, y + 15);
-    printf("Enter new value (50-188): ");
+    printf("Enter new value (50-%d%s",max_spreadsheet_width_input,"): ");
     i = 0;
 
     while (1) {
         int input = uart_get_char();
-	if(input == 27) {break_true = 1;} 
-        if(break_true) {break;} 
 
         if (input == 13) {
             input_buffer[i] = '\0';
             new_value = atoi(input_buffer);
 
-            if (new_value >= 50 && new_value <= 188) {
+            if (new_value >= 50 && new_value <= 188 && new_value <= max_spreadsheet_width_input) {
                 spreadsheet_width = new_value;
                 break;
             } else {
-                gotoxy(x + strlen("Enter new value (50-188): ") + 7, y + 15);
+                gotoxy(x + string_lenth_spreadsheet_width + 6, y + 15);
                 printf("Invalid input, try again.");
                 memset(input_buffer, 0, sizeof(input_buffer));
                 i = 0;
@@ -332,32 +331,32 @@ void settings_boss_key(int x, int y, int width, int height, int fg, int bg) {
         } else if (input >= '0' && input <= '9') {
             input_buffer[i++] = input;
             input_buffer[i] = '\0';
-            gotoxy(x + 1 + strlen("Enter new value (50-188): "), y + 15);
+            gotoxy(x + string_lenth_spreadsheet_width, y + 15);
             printf("%s", input_buffer);
         }
     }
 
     // Setting for spreadsheet_height
+    int max_spreadsheet_height_input = 51 - spreadsheet_y;
+
     gotoxy(x + 1, y + 17);
     printf("Spreadsheet height: %d", spreadsheet_height);
     gotoxy(x + 1, y + 18);
-    printf("Enter new value (20-50): ");
+    printf("Enter new value (20-%d%s",max_spreadsheet_height_input,"): ");
     i = 0;
 
     while (1) {
         int input = uart_get_char();
-	if(input == 27) {break_true = 1;} 
-        if(break_true) {break;} 
 
         if (input == 13) {
             input_buffer[i] = '\0';
             new_value = atoi(input_buffer);
 
-            if (new_value >= 20 && new_value <= 50) {
+            if (new_value >= 20 && new_value <= 50 && new_value <= max_spreadsheet_height_input) {
                 spreadsheet_height = new_value;
                 break;
             } else {
-                gotoxy(x + strlen("Enter new value (20-50): ") + 7, y + 18);
+                gotoxy(x + strlen("Enter new value (20-50):  ") + 6, y + 18);
                 printf("Invalid input, try again.");
                 memset(input_buffer, 0, sizeof(input_buffer));
                 i = 0;
@@ -365,7 +364,7 @@ void settings_boss_key(int x, int y, int width, int height, int fg, int bg) {
         } else if (input >= '0' && input <= '9') {
             input_buffer[i++] = input;
             input_buffer[i] = '\0';
-            gotoxy(x + 1 + strlen("Enter new value (20-50): "), y + 18);
+            gotoxy(x + strlen("Enter new value (20-50):  "), y + 18);
             printf("%s", input_buffer);
         }
     }
@@ -379,8 +378,6 @@ void settings_boss_key(int x, int y, int width, int height, int fg, int bg) {
 
     while (1) {
         int input = uart_get_char();
-	if(input == 27) {break_true = 1;} 
-        if(break_true) {break;} 
 
         if (input == 13) {
             input_buffer[i] = '\0';
@@ -412,8 +409,6 @@ void settings_boss_key(int x, int y, int width, int height, int fg, int bg) {
 
     while (1) {
         int input = uart_get_char();
-	if(input == 27) {break_true = 1;} 
-        if(break_true) {break;} 
 
         if (input == 13) {
             input_buffer[i] = '\0';
@@ -445,9 +440,7 @@ void settings_boss_key(int x, int y, int width, int height, int fg, int bg) {
         i = 0;
 
         while (1) {
-        int input = uart_get_char();
-	if(input == 27) {break_true = 1;} 
-        if(break_true) {break;} 
+            int input = uart_get_char();
 
             if (input == 13) {
                 input_buffer[i] = '\0';
@@ -457,7 +450,7 @@ void settings_boss_key(int x, int y, int width, int height, int fg, int bg) {
                     work_window_x = new_value;
                     break;
                 } else {
-                    gotoxy(x + 77 + strlen("Enter new value (1-138): "), y + 9);
+                    gotoxy(x + 76 + strlen("Enter new value (1-138): "), y + 9);
                     printf("Invalid input, try again.");
                     memset(input_buffer, 0, sizeof(input_buffer));
                     i = 0;
@@ -465,7 +458,7 @@ void settings_boss_key(int x, int y, int width, int height, int fg, int bg) {
             } else if (input >= '0' && input <= '9') {
                 input_buffer[i++] = input;
                 input_buffer[i] = '\0';
-                gotoxy(x + strlen("Enter new value (1-138): ") + 71, y + 9 );
+                gotoxy(x + strlen("Enter new value (1-138): ") + 70, y + 9 );
                 printf("%s", input_buffer);
             }
         }
@@ -479,8 +472,6 @@ void settings_boss_key(int x, int y, int width, int height, int fg, int bg) {
 
             while (1) {
                 int input = uart_get_char();
-		if(input == 27) {break_true = 1;} 
-      		if(break_true) {break;} 
 
                 if (input == 13) {
                     input_buffer[i] = '\0';
@@ -490,7 +481,7 @@ void settings_boss_key(int x, int y, int width, int height, int fg, int bg) {
                         work_window_y = new_value;
                         break;
                     } else {
-                        gotoxy(x + 77 + strlen("Enter new value (1-30): "), y + 12);
+                        gotoxy(x + 76 + strlen("Enter new value (1-30): "), y + 12);
                         printf("Invalid input, try again.");
                         memset(input_buffer, 0, sizeof(input_buffer));
                         i = 0;
@@ -498,32 +489,35 @@ void settings_boss_key(int x, int y, int width, int height, int fg, int bg) {
                 } else if (input >= '0' && input <= '9') {
                     input_buffer[i++] = input;
                     input_buffer[i] = '\0';
-                    gotoxy(x + strlen("Enter new value (1-30): ") + 71, y + 12 );
+                    gotoxy(x + strlen("Enter new value (1-30): ") + 70, y + 12 );
                     printf("%s", input_buffer);
                 }
             }
 
             // work_window_width
-                   gotoxy(x + 70, y + 14);
+            int max_work_window_width_input = 189 - work_window_x;
+            char max_work_window_width_input_str[10]; 
+            sprintf(max_work_window_width_input_str, "%d", max_work_window_width_input); 
+            int string_lenth_work_window_width = strlen("Enters new value (20-):") + strlen(max_work_window_width_input_str);
+
+            gotoxy(x + 70, y + 14);
                        printf("How to work width: %d", work_window_width);
                        gotoxy(x + 70, y + 15);
-                       printf("Enter new value (50-188): ");
+                       printf("Enter new value (50-%d%s", max_work_window_width_input,"): ");
                        i = 0;
 
                        while (1) {
                            int input = uart_get_char();
-			   if(input == 27) {break_true = 1;} 
-      	 		   if(break_true) {break;} 
 
                            if (input == 13) {
                                input_buffer[i] = '\0';
                                new_value = atoi(input_buffer);
 
-                               if (new_value >= 50 && new_value <= 188) {
+                               if (new_value >= 50 && new_value <= 188 && new_value <= max_work_window_width_input) {
                                    work_window_width = new_value;
                                    break;
                                } else {
-                                   gotoxy(x + 77 + strlen("Enter new value (50-188): "), y + 15);
+                                   gotoxy(x + 76 + string_lenth_work_window_width , y + 15);
                                    printf("Invalid input, try again.");
                                    memset(input_buffer, 0, sizeof(input_buffer));
                                    i = 0;
@@ -531,32 +525,32 @@ void settings_boss_key(int x, int y, int width, int height, int fg, int bg) {
                            } else if (input >= '0' && input <= '9') {
                                input_buffer[i++] = input;
                                input_buffer[i] = '\0';
-                               gotoxy(x + strlen("Enter new value (50-188): ") + 71, y + 15 );
+                               gotoxy(x + string_lenth_work_window_width  + 70, y + 15 );
                                printf("%s", input_buffer);
                            }
                        }
 
                        // Setting for work_window_height
+                       int max_work_window_height_input= 51 - work_window_y;
+
                        gotoxy(x + 70, y + 17);
                        printf("How to work height: %d", work_window_height);
                        gotoxy(x + 70, y + 18);
-                       printf("Enter new value (20-50): ");
+                       printf("Enter new value (20-%d%s",max_work_window_height_input,"): ");
                        i = 0;
 
                        while (1) {
                            int input = uart_get_char();
-			   if(input == 27) {break_true = 1;} 
-      			   if(break_true) {break;} 
 
                            if (input == 13) {
                                input_buffer[i] = '\0';
                                new_value = atoi(input_buffer);
 
-                               if (new_value >= 20 && new_value <= 50) {
+                               if (new_value >= 20 && new_value <= 50 && new_value <= max_work_window_height_input) {
                             	   work_window_height = new_value;
                                    break;
                                } else {
-                                   gotoxy(x + 77 + strlen("Enter new value (20-50): "), y + 18);
+                                   gotoxy(x + 76 + strlen("Enter new value (20-50): "), y + 18);
                                    printf("Invalid input, try again.");
                                    memset(input_buffer, 0, sizeof(input_buffer));
                                    i = 0;
@@ -564,7 +558,7 @@ void settings_boss_key(int x, int y, int width, int height, int fg, int bg) {
                            } else if (input >= '0' && input <= '9') {
                                input_buffer[i++] = input;
                                input_buffer[i] = '\0';
-                               gotoxy(x + 71 + strlen("Enter new value (20-50): "), y + 18);
+                               gotoxy(x + 70 + strlen("Enter new value (20-50): "), y + 18);
                                printf("%s", input_buffer);
                            }
                        }
@@ -578,8 +572,6 @@ void settings_boss_key(int x, int y, int width, int height, int fg, int bg) {
 
                        while (1) {
                            int input = uart_get_char();
-			   if(input == 27) {break_true = 1;} 
-       			   if(break_true) {break;} 
 
                            if (input == 13) {
                                input_buffer[i] = '\0';
@@ -589,7 +581,7 @@ void settings_boss_key(int x, int y, int width, int height, int fg, int bg) {
                             	   work_window_fg = new_value;
                                    break;
                                } else {
-                                   gotoxy(x + 77 + strlen("Enter new value (0-8): "), y + 20);
+                                   gotoxy(x + 76 + strlen("Enter new value (0-8):  "), y + 20);
                                    printf("Invalid input, try again.");
                                    memset(input_buffer, 0, sizeof(input_buffer));
                                    i = 0;
@@ -597,7 +589,7 @@ void settings_boss_key(int x, int y, int width, int height, int fg, int bg) {
                            } else if (input >= '0' && input <= '9') {
                                input_buffer[i++] = input;
                                input_buffer[i] = '\0';
-                               gotoxy(x + 71 + strlen("Enter new value (0-8): "), y + 21);
+                               gotoxy(x + 70 + strlen("Enter new value (0-8):  "), y + 21);
                                printf("%s", input_buffer);
                            }
                        }
@@ -611,8 +603,6 @@ void settings_boss_key(int x, int y, int width, int height, int fg, int bg) {
 
                        while (1) {
                            int input = uart_get_char();
-			   if(input == 27) {break_true = 1;} 
-       			   if(break_true) {break;} 
 
                            if (input == 13) {
                                input_buffer[i] = '\0';
